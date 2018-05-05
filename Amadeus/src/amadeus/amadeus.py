@@ -1,7 +1,10 @@
 import random
 import asyncio
+import discord
 import re
 from discord.ext.commands import Bot
+from bs4 import BeautifulSoup
+import requests
 
 BOT_PREFIX = ("!k ")
 TOKEN = "NDQxMzExODkxNDc4ODA2NTM4.DcubcA.OAdV3PLqV7Yd4HGAOmJ_8nHV0HA"  # Get at discordapp.com/developers/applications/me
@@ -29,6 +32,66 @@ async def xingar(ctx, user):
         await client.say(user + " é um "+ random.choice(possible_responses))
     else:
         await client.say("Entrada inválida, tente novamente")
+
+@client.command(name='maple',
+                description="Find a maple character in the rankings",
+                aliases=['name', 'maplestory', 'Maple', 'MapleStory', 'Maplestory'],
+                pass_context=True)
+async def maple(ctx, name):
+    result = requests.get("http://maplestory.nexon.net/rankings/overall-ranking/legendary?pageIndex=1&character_name="+ name +"&search=true#ranking")
+
+    c = result.content
+    soup = BeautifulSoup(c, "html.parser")
+    samples = soup.find_all('tbody')
+    samples = soup.find_all('tr')
+    
+    embed = discord.Embed(colour=discord.Colour.red())
+    
+    found = False
+    for a in samples[1:]:
+        tds = a.find_all('td')
+        
+        character_name = tds[2].string.strip()
+
+        if character_name.lower() == name.strip().lower():
+            character_rank = tds[0].string.strip()
+            character_avatar = tds[1].img['src'].strip()
+            character_world = tds[3].a['title'].strip()
+            character_job = tds[4].img['title'].strip()
+            character_level = tds[5].br.previous_sibling.strip()
+            character_legion_level = get_legion_level(character_name, character_world)
+            
+            embed.add_field(name="Name", value=character_name, inline=False)
+            embed.add_field(name="Level", value=character_level, inline=False)
+            embed.add_field(name="Job", value=character_job, inline=False)
+            embed.add_field(name="World", value=character_world, inline=False)
+            embed.add_field(name="Rank", value=character_rank, inline=False)
+            embed.add_field(name="Legion Level", value=character_legion_level, inline=False)
+            embed.set_thumbnail(url=character_avatar)
+            
+            found = True
+            
+    if found:
+        await client.say(embed=embed)
+    else:
+        await client.say(embed=discord.Embed(title="Character not found!", colour=discord.Colour.red()))
+
+def get_legion_level(character_name, character_world):
+    result = requests.get("http://maplestory.nexon.net/rankings/legion/"+ character_world +"?pageIndex=1&character_name="+ character_name +"&search=true#ranking")
+    c = result.content
+    soup = BeautifulSoup(c, "html.parser")
+    samples = soup.find_all("div", {"class":"ranking-container"})
+    samples = soup.find_all('tbody')
+    samples = soup.find_all('tr')
+    
+    for a in samples[1:]:
+        tds = a.find_all('td')
+        
+        character_name_td = tds[2].string.strip()
+        if character_name_td == character_name:
+            return tds[3].string.strip()
+    
+    return "Legion level unavailable"
 
 async def list_servers():
     await client.wait_until_ready()
