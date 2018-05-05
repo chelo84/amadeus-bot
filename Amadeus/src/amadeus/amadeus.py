@@ -93,6 +93,12 @@ def get_legion_level(character_name, character_world):
     
     return "Legion level unavailable"
 
+@client.command(name='christina',
+                aliases=['Christina'],
+                pass_context=True)
+async def christina(ctx):
+    await client.say("Remove the 'Tina' :rage:")
+
 async def list_servers():
     await client.wait_until_ready()
     while not client.is_closed:
