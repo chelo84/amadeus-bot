@@ -6,7 +6,7 @@ from discord.ext.commands import Bot
 from bs4 import BeautifulSoup
 import requests
 
-BOT_PREFIX = ("!k ")
+BOT_PREFIX = ("k!")
 TOKEN = "NDQxMzExODkxNDc4ODA2NTM4.DcubcA.OAdV3PLqV7Yd4HGAOmJ_8nHV0HA"  # Get at discordapp.com/developers/applications/me
 
 client = Bot(command_prefix=BOT_PREFIX)
@@ -42,10 +42,9 @@ async def maple(ctx, name):
 
     c = result.content
     soup = BeautifulSoup(c, "html.parser")
-    samples = soup.find_all('tbody')
     samples = soup.find_all('tr')
     
-    embed = discord.Embed(colour=discord.Colour.red())
+    embed = discord.Embed(colour=discord.Colour.purple())
     
     found = False
     for a in samples[1:]:
@@ -99,6 +98,56 @@ def get_legion_level(character_name, character_world):
 async def christina(ctx):
     await client.say("Remove the 'Tina' :rage:")
 
+@client.command(name='anime',
+                aliases=['Anime'],
+                pass_context=True)
+async def anime(ctx, *anime_to_find):
+    anime_url = find_anime_page(anime_to_find)
+    
+    if anime_url:
+        result = requests.get(url=anime_url)
+        c = result.content
+        
+        soup = BeautifulSoup(c, "html.parser", from_encoding="utf8")
+        
+        name = soup.find('span', {'itemprop': 'name'}).string.strip()
+        img = soup.find('img', {'alt': name, 'class': 'ac', 'itemprop': 'image'})['src'].strip()
+        score = soup.find('div', {'class': 'fl-l score'}).string.strip()
+        score_voters = soup.find('div', {'class': 'fl-l score'})['data-user'].strip().replace(" users", "")
+        rank = soup.find('span', {'class': 'numbers ranked'}).strong.string.strip().replace("#", "")
+        popularity = soup.find('span', {'class': 'numbers popularity'}).strong.string.strip().replace("#", "")
+        members = soup.find('span', {'class': 'numbers members'}).strong.string.strip()
+        
+        embed = discord.Embed(colour=discord.Colour.purple())
+            
+        embed.add_field(name="Name", value=name)
+        embed.add_field(name="Score", value=score)
+        embed.add_field(name="Voters", value=score_voters)
+        embed.add_field(name="Rank", value=rank)
+        embed.add_field(name="Popularity", value=popularity)
+        embed.add_field(name="Members", value=members)
+        embed.set_image(url=img)
+        
+        await client.say(embed=embed)
+    
+    else:
+        await client.say(embed=discord.Embed(title="No anime found", colour=discord.Colour.purple()))
+    
+def find_anime_page(anime_to_find):
+    try:
+        result = requests.get("https://myanimelist.net/anime.php?q="+ str(anime_to_find), headers={'Connection': 'close'})
+        c = result.content
+        soup = BeautifulSoup(c, "html.parser", from_encoding="utf8")
+        samples = soup.find('div', {"class": "js-categories-seasonal"})
+        samples = samples.find_all('tr')
+        s = samples[1].find('a', {'class': 'hoverinfo_trigger fw-b fl-l'})
+        srch_anime_url = s['href']
+        
+        return srch_anime_url
+    
+    except:
+        return None
+    
 async def list_servers():
     await client.wait_until_ready()
     while not client.is_closed:
