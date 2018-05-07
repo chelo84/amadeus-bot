@@ -12,6 +12,13 @@ TOKEN = "NDQxMzExODkxNDc4ODA2NTM4.DcubcA.OAdV3PLqV7Yd4HGAOmJ_8nHV0HA"  # Get at 
 
 client = Bot(command_prefix=BOT_PREFIX)
 
+@client.command(name='member info',
+                description='Send the info about a member from discord server',
+                aliases=['member', 'Member', 'info', 'Info', 'info member', 'Info member'],
+                pass_context=True)
+async def member_info(ctx, *, user):
+    return None
+
 @client.command(name='xingar',
                 description="Xinga um filho da puta.",
                 aliases=['fdp'],
@@ -80,8 +87,6 @@ def get_legion_level(character_name, character_world):
     result = requests.get("http://maplestory.nexon.net/rankings/legion/"+ character_world +"?pageIndex=1&character_name="+ character_name +"&search=true#ranking")
     c = result.content
     soup = BeautifulSoup(c, "html.parser")
-    samples = soup.find_all("div", {"class":"ranking-container"})
-    samples = soup.find_all('tbody')
     samples = soup.find_all('tr')
     
     for a in samples[1:]:
