@@ -4,6 +4,7 @@ import discord
 import re
 from discord.ext.commands import Bot
 from bs4 import BeautifulSoup
+from bs4 import SoupStrainer
 import requests
 
 BOT_PREFIX = ("k!")
@@ -15,7 +16,7 @@ client = Bot(command_prefix=BOT_PREFIX)
                 description="Xinga um filho da puta.",
                 aliases=['fdp'],
                 pass_context=True)
-async def xingar(ctx, user):
+async def xingar(ctx, *, user):
     possible_responses = [
         'Desgraçado',
         'Filho da puta',
@@ -23,7 +24,7 @@ async def xingar(ctx, user):
         'Lixo',
         'Vagabundo',
     ]
-
+    
     member = ctx.message.server.get_member_named(user)
 
     if member:
@@ -101,7 +102,7 @@ async def christina(ctx):
 @client.command(name='anime',
                 aliases=['Anime'],
                 pass_context=True)
-async def anime(ctx, *anime_to_find):
+async def anime(ctx, *, anime_to_find):
     anime_url = find_anime_page(anime_to_find)
     
     if anime_url:
@@ -129,7 +130,6 @@ async def anime(ctx, *anime_to_find):
         embed.set_image(url=img)
         
         await client.say(embed=embed)
-    
     else:
         await client.say(embed=discord.Embed(title="No anime found", colour=discord.Colour.purple()))
     
@@ -137,16 +137,19 @@ def find_anime_page(anime_to_find):
     try:
         result = requests.get("https://myanimelist.net/anime.php?q="+ str(anime_to_find), headers={'Connection': 'close'})
         c = result.content
-        soup = BeautifulSoup(c, "html.parser", from_encoding="utf8")
-        samples = soup.find('div', {"class": "js-categories-seasonal"})
-        samples = samples.find_all('tr')
+        
+        only_div_class = SoupStrainer("div", {'class': 'js-categories-seasonal js-block-list list'})
+        soup = BeautifulSoup(c, "html.parser", from_encoding="utf8", parse_only=only_div_class)
+        
+        samples = soup.find_all('tr')
         s = samples[1].find('a', {'class': 'hoverinfo_trigger fw-b fl-l'})
         srch_anime_url = s['href']
         
         return srch_anime_url
-    
     except:
         return None
+    
+
     
 async def list_servers():
     await client.wait_until_ready()
