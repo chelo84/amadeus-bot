@@ -19,3 +19,12 @@ Comando ```k!christina```
 Método que procura as informações de um anime no site MAL(My Anime List), como nome, nota, rank, membros, etc.
 
 Comando ```k!anime <nome_anime>```
+
+## Img
+Método que mostra a imagem de avatar de um membro do discord que for mencionado no comando.
+
+Comando ```k!img <usuário-mencionado>```
+
+
+
+> Exemplo de menção = '@Chelo84#2986'
