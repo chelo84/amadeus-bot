@@ -12,13 +12,29 @@ TOKEN = "NDQxMzExODkxNDc4ODA2NTM4.DcubcA.OAdV3PLqV7Yd4HGAOmJ_8nHV0HA"  # Get at 
 
 client = Bot(command_prefix=BOT_PREFIX)
 
-@client.command(name='member info',
-                description='Send the info about a member from discord server',
-                aliases=['member', 'Member', 'info', 'Info', 'info member', 'Info member'],
+@client.command(name='img',
+                description='Send the img of a member from discord server',
+                aliases=['member', 'Member', 'info', 'Img', 'img member', 'Img member'],
                 pass_context=True)
-async def member_info(ctx, *, user):
-    return None
-
+async def img_member(ctx, *, user):
+    embed = discord.Embed(colour=discord.Colour.purple())
+    
+    replaceables = "<@!>"
+    for char in user:
+        if char in replaceables:
+            user = user.replace(char, '') 
+    
+    member = ctx.message.server.get_member(user)
+    
+    try:
+        member_avatar_url = member.avatar_url
+        
+        embed.set_image(url=member_avatar_url)
+            
+        await client.say(embed=embed)
+    except:
+        await client.say(embed=discord.Embed(title="Invalid input", colour=discord.Colour.purple()))
+        
 @client.command(name='xingar',
                 description="Xinga um filho da puta.",
                 aliases=['fdp'],
@@ -81,7 +97,7 @@ async def maple(ctx, name):
     if found:
         await client.say(embed=embed)
     else:
-        await client.say(embed=discord.Embed(title="Character not found!", colour=discord.Colour.red()))
+        await client.say(embed=discord.Embed(title="Character not found!", colour=discord.Colour.purple()))
 
 def get_legion_level(character_name, character_world):
     result = requests.get("http://maplestory.nexon.net/rankings/legion/"+ character_world +"?pageIndex=1&character_name="+ character_name +"&search=true#ranking")
@@ -153,8 +169,6 @@ def find_anime_page(anime_to_find):
         return srch_anime_url
     except:
         return None
-    
-
     
 async def list_servers():
     await client.wait_until_ready()
